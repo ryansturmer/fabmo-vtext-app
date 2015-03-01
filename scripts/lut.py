@@ -27,6 +27,24 @@ X1X
         ak = rotate_kernel_90(ak)
         bk = rotate_kernel_90(bk)
 
+def make_consolidated_skel_luts():
+    ak = '''
+000
+X1X
+111
+'''
+
+    bk = '''
+X00
+110
+X1X
+'''
+    alut = create_lut_from_kernel(ak, rot=True)
+    print jslut(alut, 'lut_a')
+    blut = create_lut_from_kernel(bk, rot=True)
+    print jslut(blut, 'lut_b')
+
+
 def jslut(lut, name):
     return 'var ' + name + ' = [' + ','.join(['1' if x else '0' for x in lut]) + ']'
 
