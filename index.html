@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+	<body>
+		<canvas id="canvas" width="500" height="500" style="border:1px solid black;">
+			You have no HTML5 canvas support.
+		</canvas>
+
+	<script src="js/jquery.js" type="text/javascript"></script>
+	<script src="js/image.js" type="text/javascript"></script>
+	<script language="javascript">
+	$(document).ready(function() {
+		var text = "H";
+		var font = "300px Times";
+		var canvas = $("#canvas")[0];
+		var cx = canvas.getContext("2d");
+
+		cx.font = font;
+		var m = cx.measureText(text);
+		cx.fillStyle = "#aa0000"
+		cx.fillText(text, canvas.width/2 - (m.width/2), 3*canvas.height/4);
+		var img = new Img(canvas);
+		setInterval(function() {
+			img.threshold(1,0xff);
+			img.thin(lut_a);
+			img.thin(lut_b);
+			img.thin(lut_c);
+			img.thin(lut_d);
+			img.thin(lut_e);
+			img.thin(lut_f);
+			img.thin(lut_g);
+			img.thin(lut_h);
+
+			//img.cdt();
+			//img.skel();
+			//img.normalize(0,0xff);
+			//img.threshold(1,0xff);
+			img.drawOn(canvas);
+		}, 100)
+	});
+	</script>
+	</body>
+</html>
