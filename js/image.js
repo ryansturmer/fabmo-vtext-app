@@ -1,4 +1,4 @@
-
+// Lookup tables for topological thinning
 var lut_a = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 var lut_b = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0]
 var lut_c = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -8,6 +8,7 @@ var lut_f = [0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 var lut_g = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 var lut_h = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
+// Return maximum value in an array
 function max(arr) {
 	retval = arr[0];
 	for(var i=1; i<arr.length; i++) {
@@ -16,6 +17,7 @@ function max(arr) {
 	return retval;
 }
 
+// Return minimum value in an array
 function min(arr) {
 	retval = arr[0];
 	for(var i=1; i<arr.length; i++) {
@@ -24,10 +26,12 @@ function min(arr) {
 	return retval;
 }
 
+// Return a bit mask that corresponds to the neighborhood of pixel values supplied
 function neighborhoodToMask(n,ne,e,se,s,sw,w,nw) {
 	return (n << 0) | (ne << 1) | (e << 2) | (se << 3) | (s << 4) | (sw << 5) | (w << 6) | (nw << 7);
 }
 
+// Image object.  Constructor can create from a canvas, context, or an empty image from dimensions
 function Img(arg1,arg2) {
 	function arrayFromCanvas(canvas) {
 		var ctx = canvas.getContext('2d');
@@ -66,6 +70,7 @@ function Img(arg1,arg2) {
 	}
 }
 
+// Draw this image on the supplied canvas
 Img.prototype.drawOn = function(canvas) {
 	var ctx = canvas.getContext("2d");
 	var imgData = ctx.createImageData(this.width, this.height);
@@ -81,6 +86,7 @@ Img.prototype.drawOn = function(canvas) {
 	ctx.putImageData(imgData, 0,0);
 }
 
+// Set all pixels in this image that are above thresh to the value supplied
 Img.prototype.threshold = function(thresh, value) {
 	value = value || 0xff;
 	for(var i=0; i<this.d.length; i++) {
@@ -88,14 +94,17 @@ Img.prototype.threshold = function(thresh, value) {
 	} 
 }
 
+// Set a pixel to a value
 Img.prototype.setPixel = function(x,y,val) {
 	this.d[x+y*this.width] = val;
 }
 
+// Get the value of the supplied pixel
 Img.prototype.getPixel = function(x,y) {
 	return this.d[x+y*this.width];
 }
 
+// Perform a single morphological dilation with a d8 kernel
 Img.prototype._dilate = function() {
 	for(var x = 1; x<this.width-1; x++) {
 		for(var y=1; y<this.height-1; y++) {
@@ -119,6 +128,7 @@ Img.prototype._dilate = function() {
 	}
 }
 
+// Perform a single morphological erosion with a d8 kernel
 Img.prototype._erode = function() {
 	for(var x = 1; x<this.width-1; x++) {
 		for(var y=1; y<this.height-1; y++) {
@@ -142,6 +152,7 @@ Img.prototype._erode = function() {
 	}
 }
 
+// Dilate the image by the specified amount
 Img.prototype.dilate = function(iterations) {
 	var iterations = iterations || 1;
 	for(var i=0; i<iterations; i++) {
@@ -150,6 +161,7 @@ Img.prototype.dilate = function(iterations) {
 	}
 }
 
+// Erode the image by the specified amount
 Img.prototype.erode = function(iterations) {
 	var iterations = iterations || 1;
 	for(var i=0; i<iterations; i++) {
@@ -158,15 +170,12 @@ Img.prototype.erode = function(iterations) {
 	}
 }
 
+// Ajust the range of the image to the min/max specified
 Img.prototype.normalize = function(minval, maxval) {
 	var img_min = min(this.d);
 	var img_max = max(this.d);
 	var img_scale = (img_max - img_min);
 	var output_scale = (maxval-minval);
-	console.log('img-min: ' + img_min)
-	console.log('img-max: ' + img_max)
-	console.log('img-scale: ' + img_scale)
-	console.log('output-scale: ' + output_scale)
 
 	for(var i=0; i<this.d.length; i++) {
 		var p = minval + output_scale*(this.d[i] - img_min)/img_scale;
@@ -174,6 +183,7 @@ Img.prototype.normalize = function(minval, maxval) {
 	}
 }
 
+// Get the bit mask for the neighborhood of the specified pixel
 Img.prototype.neighborhood = function(x,y) {
 	nw = this.getPixel(x-1,y-1) ? 1 : 0;
 	n = this.getPixel(x+0,y-1) ? 1 : 0;
@@ -186,11 +196,10 @@ Img.prototype.neighborhood = function(x,y) {
 	return neighborhoodToMask(n,ne,e,se,s,sw,w,nw);
 }
 
+// Chessboard distance transform
 Img.prototype.cdt = function() {
-
 	// Create second image to store result
 	new_img = new Img(this.width, this.height);
-
 	this.threshold(0xff, 0xffff);
 	var pixel_changed = true;
 	var max_v = 0
@@ -213,13 +222,12 @@ Img.prototype.cdt = function() {
 						this.setPixel(x,y,1);
 						pixel_changed = true;
 						pixels_changed += 1;
+						
 					}
 				}
 			}
 		}
 		this.threshold(2, 0xffff);
-		console.log(pixels_changed);
-		console.log(iteration);
 	}
 
 	for(i=0; i<this.d.length; i++) {
