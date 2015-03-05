@@ -71,17 +71,24 @@ function Img(arg1,arg2) {
 }
 
 // Draw this image on the supplied canvas
-Img.prototype.drawOn = function(canvas) {
+Img.prototype.drawOn = function(canvas, lut) {
 	var ctx = canvas.getContext("2d");
 	var imgData = ctx.createImageData(this.width, this.height);
 	var data = imgData.data;
 	var i=0;
 	for(var j=0; j<data.length; j+=4) {
 		var v = this.d[i++];
-		data[j] = v;
-		data[j+1] = v;
-		data[j+2] = v;
+		if(lut) {
+			data[j] = lut.red(v);
+			data[j+1] = lut.green(v);
+			data[j+2] = lut.blue(v);
+		} else {
+			data[j] = v;
+			data[j+1] = v;
+			data[j+2] = v;
+		}
 		data[j+3] = 0xff;
+
 	}
 	ctx.putImageData(imgData, 0,0);
 }

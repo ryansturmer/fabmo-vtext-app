@@ -5,16 +5,18 @@
 			You have no HTML5 canvas support.
 		</canvas>
 
+	<script src="js/luts.js" type="text/javascript"></script>
 	<script src="js/jquery.js" type="text/javascript"></script>
 	<script src="js/image.js" type="text/javascript"></script>
+
 	<script language="javascript">
 	$(document).ready(function() {
-		var text = "Hello";
-		var font = "300px Georgia";
+		var text = "Wow.";
+		var font = "300px Comic Sans MS";
 		var canvas = $("#canvas")[0];
 		var cx = canvas.getContext("2d");
 
-		cx.font = font;
+		cx.font = font; 
 		var m = cx.measureText(text);
 		cx.fillStyle = "#aa0000"
 		cx.fillText(text, canvas.width/2 - (m.width/2), 3*canvas.height/4);
@@ -22,7 +24,7 @@
 		img.threshold(1,0xff);
 		img.mat();
 		img.normalize(0,0xff);
-		img.drawOn(canvas);
+		img.drawOn(canvas, LUTBlueOrange);
 	});
 	</script>
 	</body>

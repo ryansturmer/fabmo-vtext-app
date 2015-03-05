@@ -1,0 +1,10 @@
+var LUT = function(r,g,b,name) {
+    this._r = r;
+    this._g = g;
+    this._b = b;
+    this.name = name || "LUT"
+}
+LUT.prototype.red = function(val) { return this._r[parseInt(val)]; }
+LUT.prototype.green = function(val) { return this._g[parseInt(val)]; }
+LUT.prototype.blue = function(val) { return this._b[parseInt(val)]; }
+LUT.prototype.rgb = function(val) { val = parseInt(val); return [this._r[val], this._g[val], this._b[val]]; }
