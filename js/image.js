@@ -10,8 +10,8 @@ var lut_h = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0
 
 var PointStore = function() {
 	this.map = {};
-	this.length = 0;
 }
+
 PointStore.prototype.add = function(x,y,v) { 
 	this.map[[x,y]] = [x,y,v]; 
 }
@@ -42,7 +42,14 @@ PointStore.prototype.clone = function(v) {
 	return retval;
 }
 PointStore.prototype.increment = function(x,y) { this.map[[x,y]][2] += 1; }
-
+PointStore.prototype.translate = function(dx,dy) {
+	retval = new PointStore();
+	for(key in this.map) {
+		pt = this.map[key];
+		retval.map[[pt[0]+dx,pt[1]+dy]] = [pt[0],pt[1],pt[2]];
+	}
+	return retval;
+}
 
 // Return maximum value in an array
 function max(arr) {

@@ -28,6 +28,7 @@ function getHighestPoint(ps) {
 }
 
 function extractGlyphs(ps) {
+	var ps = ps.clone();
 	function destructiveSearch(ps, x, y, glyph) {
 		if(glyph) {
 			var glyph = glyph;
@@ -100,7 +101,7 @@ function glyphToPath(glyph) {
 		has_choices = false;
 
 		// We'll break out of this loop every time we pick the tool up or if we've visited everything
-		while(unvisited.size() == 0) {
+		while(unvisited.size() > 0) {
 			// Visit the current location
 			next_choices = visit(loc[0],loc[1]);
 
