@@ -1,18 +1,82 @@
 <!doctype html>
 <html>
 	<body>
-		<canvas id="canvas" width="1000" height="500" style="border:1px solid black;">
+
+
+    <div class="container-fluid">
+      <!-- Title/description -->
+      <div style="text-align:center;">
+        <h1>VText</h1>
+      </div>
+      
+      <!-- Viewport for 3D view -->
+      <div class="row">
+      
+      <div class="col-sm-7 col-sm-push-5" style="margin-left: auto; margin-right: auto; ">
+        <canvas id="canvas" width="500" height="500" style="border:1px solid black;">
 			You have no HTML5 canvas support.
 		</canvas>
+
+        <div style="margin:20px; text-align: right;">
+          <!--<button class="btn btn-lg btn-default" id="btn-regenerate">
+            Regenerate
+            <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+          </button>-->
+          <button class="btn btn-lg btn-success" id="btn-cut">
+            Transform
+            <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Form for input -->
+        <div class="col-sm-5 col-sm-pull-7">
+          <form class="form-horizontal" id="form-params">
+
+            <div class="form-group">
+              <label for="input-scale" class="col-sm-6 control-label">Text</label>
+              <div class="col-sm-6">
+                <input class="form-control num-input" id="input-scale" value="2.0">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="input-width" class="col-sm-6 control-label">Text Width</label>
+              <div class="col-sm-6">
+                <div class="input-group">
+                  <input class="form-control num-input" id="input-width" value="5">
+                  <span class="input-group-addon">in</span>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="input-resolution" class="col-sm-6 control-label">Safe Z Pullup</label>
+              <div class="col-sm-6">
+                <div class="input-group">
+                  <input class="form-control num-input" id="input-zpullup" value="0.25">
+                  <span class="input-group-addon">in</span>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
 
 	<script src="js/luts.js" type="text/javascript"></script>
 	<script src="js/jquery.js" type="text/javascript"></script>
 	<script src="js/image.js" type="text/javascript"></script>
+	<script src="js/image_toolpath.js" type="text/javascript"></script>
 
 	<script language="javascript">
 	$(document).ready(function() {
+
+	});
+
+	$('#mylink').click(function() {
 		var text = "Wow.";
-		var font = "300px Comic Sans MS";
+		var font = "200px Times";
 		var canvas = $("#canvas")[0];
 		var cx = canvas.getContext("2d");
 
@@ -23,9 +87,40 @@
 		var img = new Img(canvas);
 		img.threshold(1,0xff);
 		img.mat();
-		img.normalize(0,0xff);
+		img.normalize(0,0xff-128);
+		ps = img.getOnPixels();
+		//console.log(Object.keys(ps.map).length);
+		console.log(getLowerLeftMostPoint(ps));
+		glyphs = extractGlyphs(img.getOnPixels());
+		var paths = []
+		for(i in glyphs) {
+			paths.push(glyphToPath(glyphs[i]));
+		}
+
 		img.drawOn(canvas, LUTBlueOrange);
+
+		var pi = 0;
+		var current_glyph = paths.shift();
+		var draw = function() {
+			if(pi < current_glyph.length) {
+				p = current_glyph[pi];
+				px = img.getPixel(p[0],p[1]);
+				px += 64;
+				img.setPixel(p[0],p[1], px);
+
+				img.drawOn(canvas, LUTBlueOrange);
+				pi+=1;
+			} else {
+				current_glyph = paths.shift();
+				pi = 0;
+			}
+			if(current_glyph) {
+				setTimeout(draw, 1);
+			}
+		}
+		setTimeout(draw, 1);
 	});
+
 	</script>
 	</body>
 </html>

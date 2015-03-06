@@ -8,6 +8,42 @@ var lut_f = [0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 var lut_g = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 var lut_h = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
+var PointStore = function() {
+	this.map = {};
+	this.length = 0;
+}
+PointStore.prototype.add = function(x,y,v) { 
+	this.map[[x,y]] = [x,y,v]; 
+}
+PointStore.prototype.has = function(x,y) { return [x,y] in this.map; }
+PointStore.prototype.remove = function(x,y) { delete this.map[[x,y]]; }
+PointStore.prototype.getPoints = function() {
+	retval = [];
+	for(key in this.map) {
+		v = this.map[key];
+		retval.push([v[0],v[1]]);
+	}
+	return retval;
+}
+PointStore.prototype.size = function() { return Object.keys(this.map).length; }
+PointStore.prototype.value = function(x,y) { 
+	try {
+		return this.map[[x,y]][2]; 
+	} catch(e) {
+		return undefined;
+	} 
+}
+PointStore.prototype.clone = function(v) {
+	retval = new PointStore();
+	for(key in this.map) {
+		pt = this.map[key];
+		retval.map[key] = [pt[0],pt[1], (typeof v != 'undefined') ? v : pt[2]];
+	}
+	return retval;
+}
+PointStore.prototype.increment = function(x,y) { this.map[[x,y]][2] += 1; }
+
+
 // Return maximum value in an array
 function max(arr) {
 	retval = arr[0];
@@ -297,4 +333,17 @@ Img.prototype._thin = function(lut) {
 	}
 	this.threshold(2, 0xff);
 	return changed;
+}
+
+Img.prototype.getOnPixels = function() {
+	retval = new PointStore();
+	for(var y=this.height-1; y>=0; y--) {
+		for(var x=0; x<this.width; x++) {
+			px = this.getPixel(x,y);
+			if(px) { 
+				retval.add(x,y,px);
+			}
+		}
+	}
+	return retval;
 }
