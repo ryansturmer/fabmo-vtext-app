@@ -11,27 +11,21 @@
 
 	<body style="margin-top: 10px;">
     <div class="container-fluid">
-      <!-- Title/description -->
-      <!--
-      <div style="text-align:center;">
-        <h1>VText</h1>
-      </div>
-      -->
-      
+
       <!-- Viewport for 3D view -->
       <div class="row">      
-      <div class="col-sm-7 col-sm-push-5" style="margin-left: auto; margin-right: auto; ">
+      <div class="col-sm-8 col-sm-push-4" style="margin-left: auto; margin-right: auto; ">
         <div class="well">
         <canvas id="canvas" width="500" height="200">You have no HTML5 canvas support.</canvas>
         </div>
 
-        <div style="margin:20px; text-align: right;">
+        <div style="margin:20px; text-align: center;">
           <!--<button class="btn btn-lg btn-default" id="btn-regenerate">
             Regenerate
             <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
           </button>-->
           <button class="btn btn-lg btn-success" id="btn-cut">
-            Transform
+            FABRICATE
             <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
           </button>
         </div>
@@ -39,25 +33,44 @@
 
 
       <!-- Form for input -->
-        <div class="col-sm-5 col-sm-pull-7">
+        <div class="col-sm-4 col-sm-pull-8">
           <form class="form-horizontal" id="form-params">
             <div class="form-group">
-              <label for="input-scale" class="col-sm-6 control-label">Text</label>
+              <label for="input-text" class="col-sm-6 control-label">Text</label>
               <div class="col-sm-6">
                 <input class="form-control num-input" id="input-text" value="Hello">
               </div>
             </div>
+
             <div class="form-group">
-              <label for="input-width" class="col-sm-6 control-label">Font Size</label>
+              <label for="input-font" class="col-sm-6 control-label">Font</label>
+              <div class="col-sm-6">
+                <input class="form-control num-input" id="input-font" value="Georgia">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-text_height" class="col-sm-6 control-label">Text Height</label>
               <div class="col-sm-6">
                 <div class="input-group">
-                  <input class="form-control num-input" id="input-width" value="5">
+                  <input class="form-control num-input" id="input-text_height" value="2">
                   <span class="input-group-addon">in</span>
                 </div>
               </div>
             </div>
+
+
             <div class="form-group">
-              <label for="input-resolution" class="col-sm-6 control-label">Safe Z Pullup</label>
+              <label for="input-bit_angle" class="col-sm-6 control-label">Bit Angle</label>
+              <div class="col-sm-6">
+                <div class="input-group">
+                  <input class="form-control num-input" id="input-bit_angle" value="90">
+                  <span class="input-group-addon">degrees</span>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="input-zpullup" class="col-sm-6 control-label">Safe Z Pullup</label>
               <div class="col-sm-6">
                 <div class="input-group">
                   <input class="form-control num-input" id="input-zpullup" value="0.25">
@@ -65,6 +78,17 @@
                 </div>
               </div>
             </div>
+            <div class="form-group">
+              <label for="input-feedrate" class="col-sm-6 control-label">Feedrate</label>
+              <div class="col-sm-6">
+                <div class="input-group">
+                  <input class="form-control num-input" id="input-feedrate" value="2.0">
+                  <span class="input-group-addon">in/sec</span>
+                </div>
+              </div>
+            </div>
+
+
           </form>
         </div>
       </div>
@@ -81,118 +105,31 @@
 	<script language="javascript">
 	$(document).ready(function() {});
 
-	function move(x,y,z,fr) {
-		return "G1 X" + Number(x).toFixed(4) + " Y" + Number(y).toFixed(4) + " Z" + Number(z).toFixed(4) + " F" + (fr*60.0).toFixed(4);
-	};
+    function getOptions() {
+        // Extract options from the form
+        var options = {}
+        $('#form-params').find('input').each(function(){
+          var id = this.id.replace(/input-/gi, '');
+          options[id] = Number(this.value);
+          if(isNaN(options[id])) {
+          	options[id] = this.value;
+          }
+        });
+        return options
+    }
 
-	function jog(x,y) {
-		return "G0 X" + Number(x).toFixed(4) + " Y" + Number(y).toFixed(4);
-	};
-	function pullup(z) {
-		return "G0 Z" + Number(z).toFixed(4);
-	};
+    var textCanvas;
+    var text;
+    var font;
+    var options;
 
-	function createTextCanvas(text, font) {
-		var cvs = document.createElement('canvas');
-		var cxt = cvs.getContext("2d");
-		cxt.font = font;
-		var metrics = cxt.measureText(text);
-		//console.log(metrics)
-		cvs.width = metrics.width + 20;
-		cvs.height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + 20;
-		//console.log("Text Canvas Size: " + cvs.width + "," + cvs.height)
-		var x = 10;
-		var y = cvs.height-metrics.actualBoundingBoxDescent-10;
-		
-		cxt.font = font;
-		cxt.fillStyle = "#aa0000";
-		cxt.fillText(text, x,y);
+    function update() {
+    	options = getOptions();
+    	text = options.text;
+    	font = (options.text_height*100) + 'px ' + options.font;
+    	console.log(font);
 
-		cvs.origin = [x,y];
-		cvs.fontMetrics = metrics;
-
-		return cvs;
-	}
-
-	function createToolPaths(canvas, options) {
-		options = options || {};
-		var feedrate = options.feedrate || 2.0;
-		var bit_angle = options.bit_angle || 90.0;
-		var theta = 0.0174532925*(bit_angle/2.0);
-		var zpullup = options.zpullup || 0.5;
-		var text_height = options.text_height || 2.0;
-
-		// Create an image for dealing in memory
-		var img = new Img(canvas);
-
-		// Convert to monochrome
-		img.threshold(1,0xff);
-
-		// Medial axis transform
-		img.mat();
-
-		// Extract points on the skeleton
-		pointset = img.getOnPixels();
-		
-		// Pull glyphs
-		glyphs = extractGlyphs(pointset);
-
-		// Find paths via search
-		var paths = []
-		for(i in glyphs) {
-			paths.push(glyphToPath(glyphs[i]));
-		}
-
-		// Info!
-		console.info(glyphs.length + " glyphs extracted.")
-
-		// Begin the gcode file
-		var gcodes = [
-			'(VCarve File)',
-			pullup(zpullup),
-			'M4',
-			'G4 P3'
-		];
-
-		var pulled_up = true;
-		var scale = text_height/canvas.fontMetrics.actualBoundingBoxAscent;
-		var ox = canvas.origin[0];
-		var oy = canvas.origin[1];
-		for(path in paths) {
-			path = paths[path];
-			for(i in path) {
-				point = path[i];
-				// Pull up for dead ends within a path
-				if(point === null) {
-					gcodes.push(pullup(zpullup));
-					pulled_up = true;
-				} else {
-					var x = scale*(point[0]-ox);
-					var y = -scale*(point[1]-oy);
-					var z = -scale*pointset.value(point[0],point[1])/Math.sin(theta);
-					// Jog between pullups
-					if(pulled_up) {
-						gcodes.push(jog(x,y));
-						pulled_up = false;
-					}
-					gcodes.push(move(x, y, z, feedrate))
-				}
-			}
-			// Pull up between paths
-			gcodes.push(pullup(zpullup));
-			pulled_up = true;
-		}
-		gcodes.push(pullup(zpullup));
-		gcodes.push(jog(0,0));
-		gcodes.push('M8');
-		return gcodes.join('\n');
-	}
-
-	$('#btn-cut').click(function() {
-		var text = $('#input-text').val();
-		var font = "200px Times";
-		var textCanvas = createTextCanvas(text, font);
-		console.log(textCanvas)
+   		textCanvas = createTextCanvas(text, font);
 
 		var canvas = $("#canvas");
 		var canvas_well = canvas.parent();
@@ -208,14 +145,27 @@
 		var height = textCanvas.height*scale;
 		var y = (canvas.height-height)/2.0;
 		var x = (canvas.width-width)/2.0;
+		
 		cx.clearRect(0,0,canvas.width, canvas.height)
 		cx.drawImage(textCanvas,x,y,width,height);
-		gcode = createToolPaths(textCanvas);
-		fabmoDashboard.submitJob(gcode, {	name: 'V-Carve "' + text + '"', 
-											description : 'V-Carve the text "' + text + '"',
-											filename : 'vcarve.nc'});
-	});
+    }
 
+    function fabricate() {
+    	update();
+		gcode = createToolPaths(textCanvas, options);
+		fabmoDashboard.submitJob(gcode, {	name: 'V-Carve "' + text + '"', 
+											description : 'V-Carve the text "' + text + '" at ' + options.text_height + '" tall with a ' + options.bit_angle + 'degree bit.',
+											filename : 'vcarve.nc'});
+    }
+
+    $('#form-params').change(function(evt) {
+      update();
+    });
+
+	$('#btn-cut').click(function() {
+		fabricate();
+	});
+	update();
 	</script>
 	</body>
 </html>

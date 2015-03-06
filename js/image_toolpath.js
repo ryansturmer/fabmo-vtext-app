@@ -1,3 +1,14 @@
+function move(x,y,z,fr) {
+	return "G1 X" + Number(x).toFixed(4) + " Y" + Number(y).toFixed(4) + " Z" + Number(z).toFixed(4) + " F" + (fr*60.0).toFixed(4);
+};
+
+function jog(x,y) {
+	return "G0 X" + Number(x).toFixed(4) + " Y" + Number(y).toFixed(4);
+};
+function pullup(z) {
+	return "G0 Z" + Number(z).toFixed(4);
+};
+
 function getLowerLeftMostPoint(ps) {
 	all_points = ps.getPoints();
 	var xmin = all_points[0][0];
@@ -130,3 +141,99 @@ function glyphToPath(glyph) {
 	}
 	return path;
 }
+
+	function createTextCanvas(text, font) {
+		var cvs = document.createElement('canvas');
+		var cxt = cvs.getContext("2d");
+		cxt.font = font;
+		var metrics = cxt.measureText(text);
+		//console.log(metrics)
+		cvs.width = metrics.width + 20;
+		cvs.height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + 20;
+		//console.log("Text Canvas Size: " + cvs.width + "," + cvs.height)
+		var x = 10;
+		var y = cvs.height-metrics.actualBoundingBoxDescent-10;
+		
+		cxt.font = font;
+		cxt.fillStyle = "#330066";
+		cxt.fillText(text, x,y);
+
+		cvs.origin = [x,y];
+		cvs.fontMetrics = metrics;
+
+		return cvs;
+	}
+
+	function createToolPaths(canvas, options) {
+		options = options || {};
+		var feedrate = options.feedrate || 2.0;
+		var bit_angle = options.bit_angle || 90.0;
+		var theta = 0.0174532925*(bit_angle/2.0);
+		var zpullup = options.zpullup || 0.5;
+		var text_height = options.text_height || 2.0;
+
+		// Create an image for dealing in memory
+		var img = new Img(canvas);
+
+		// Convert to monochrome
+		img.threshold(1,0xff);
+
+		// Medial axis transform
+		img.mat();
+
+		// Extract points on the skeleton
+		pointset = img.getOnPixels();
+		
+		// Pull glyphs
+		glyphs = extractGlyphs(pointset);
+
+		// Find paths via search
+		var paths = []
+		for(i in glyphs) {
+			paths.push(glyphToPath(glyphs[i]));
+		}
+
+		// Info!
+		console.info(glyphs.length + " glyphs extracted.")
+
+		// Begin the gcode file
+		var gcodes = [
+			'(VCarve File)',
+			pullup(zpullup),
+			'M4',
+			'G4 P3'
+		];
+
+		var pulled_up = true;
+		var scale = text_height/canvas.fontMetrics.actualBoundingBoxAscent;
+		var ox = canvas.origin[0];
+		var oy = canvas.origin[1];
+		for(path in paths) {
+			path = paths[path];
+			for(i in path) {
+				point = path[i];
+				// Pull up for dead ends within a path
+				if(point === null) {
+					gcodes.push(pullup(zpullup));
+					pulled_up = true;
+				} else {
+					var x = scale*(point[0]-ox);
+					var y = -scale*(point[1]-oy);
+					var z = -scale*pointset.value(point[0],point[1])/Math.sin(theta);
+					// Jog between pullups
+					if(pulled_up) {
+						gcodes.push(jog(x,y));
+						pulled_up = false;
+					}
+					gcodes.push(move(x, y, z, feedrate))
+				}
+			}
+			// Pull up between paths
+			gcodes.push(pullup(zpullup));
+			pulled_up = true;
+		}
+		gcodes.push(pullup(zpullup));
+		gcodes.push(jog(0,0));
+		gcodes.push('M8');
+		return gcodes.join('\n');
+	}

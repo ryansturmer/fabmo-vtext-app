@@ -1,0 +1,10 @@
+{
+	"name":"Text V-Carve",
+	"main":"./index.html",
+	"icon":"icon.png",
+	"icon_color":"green",
+	"version":"0.0.1",
+	"author":"Ryan Sturmer",
+	"website":"http://www.shopbottools.com",
+	"description":"V-Carve Text"
+}
