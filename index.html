@@ -127,13 +127,11 @@
     	options = getOptions();
     	text = options.text;
     	font = (options.text_height*100) + 'px ' + options.font;
-    	console.log(font);
 
    		textCanvas = createTextCanvas(text, font);
 
 		var canvas = $("#canvas");
 		var canvas_well = canvas.parent();
-		console.log(canvas_well.width())
 		canvas = canvas[0];
 		canvas.width = canvas_well.width();
 		var cx = canvas.getContext("2d");
@@ -154,7 +152,7 @@
     	update();
 		gcode = createToolPaths(textCanvas, options);
 		fabmoDashboard.submitJob(gcode, {	name: 'V-Carve "' + text + '"', 
-											description : 'V-Carve the text "' + text + '" at ' + options.text_height + '" tall with a ' + options.bit_angle + 'degree bit.',
+											description : "V-Carve the text '" + text + "' at " + options.text_height + '" tall with a ' + options.bit_angle + ' degree bit.',
 											filename : 'vcarve.nc'});
     }
 

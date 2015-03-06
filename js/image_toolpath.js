@@ -147,10 +147,8 @@ function glyphToPath(glyph) {
 		var cxt = cvs.getContext("2d");
 		cxt.font = font;
 		var metrics = cxt.measureText(text);
-		//console.log(metrics)
 		cvs.width = metrics.width + 20;
 		cvs.height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + 20;
-		//console.log("Text Canvas Size: " + cvs.width + "," + cvs.height)
 		var x = 10;
 		var y = cvs.height-metrics.actualBoundingBoxDescent-10;
 		
@@ -183,7 +181,6 @@ function glyphToPath(glyph) {
 
 		// Extract points on the skeleton
 		pointset = img.getOnPixels();
-		
 		// Pull glyphs
 		glyphs = extractGlyphs(pointset);
 
