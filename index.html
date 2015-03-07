@@ -9,7 +9,7 @@
     <link href="css/style.css" rel="stylesheet">
   </head>
 
-	<body style="margin-top: 10px;">
+  <body style="margin-top: 10px;">
     <div class="container-fluid">
 
       <!-- Viewport for 3D view -->
@@ -19,11 +19,15 @@
         <canvas id="canvas" width="500" height="200">You have no HTML5 canvas support.</canvas>
         </div>
 
+        <div class="well" id="debug" style="display:none;">
+        </div>
         <div style="margin:20px; text-align: center;">
-          <!--<button class="btn btn-lg btn-default" id="btn-regenerate">
-            Regenerate
+            <!--
+            <button class="btn btn-lg btn-info" id="btn-debug">
+            Debug
             <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
-          </button>-->
+          </button>
+          -->
           <button class="btn btn-lg btn-success" id="btn-cut">
             FABRICATE
             <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
@@ -95,15 +99,15 @@
     </div>
 
 
-	<script src="js/luts.js" type="text/javascript"></script>
-	<script src="js/jquery.js" type="text/javascript"></script>
-	<script src="js/image.js" type="text/javascript"></script>
-	<script src="js/image_toolpath.js" type="text/javascript"></script>
-	<script src="js/em.js" type="text/javascript"></script>
-	<script src="js/dashboard.js" type="text/javascript"></script>
+  <script src="js/luts.js" type="text/javascript"></script>
+  <script src="js/jquery.js" type="text/javascript"></script>
+  <script src="js/image.js" type="text/javascript"></script>
+  <script src="js/image_toolpath.js" type="text/javascript"></script>
+  <script src="js/em.js" type="text/javascript"></script>
+  <script src="js/dashboard.js" type="text/javascript"></script>
 
-	<script language="javascript">
-	$(document).ready(function() {});
+  <script language="javascript">
+  $(document).ready(function() {});
 
     function getOptions() {
         // Extract options from the form
@@ -112,7 +116,7 @@
           var id = this.id.replace(/input-/gi, '');
           options[id] = Number(this.value);
           if(isNaN(options[id])) {
-          	options[id] = this.value;
+            options[id] = this.value;
           }
         });
         return options
@@ -124,46 +128,58 @@
     var options;
 
     function update() {
-    	options = getOptions();
-    	text = options.text;
-    	font = (options.text_height*100) + 'px ' + options.font;
+      options = getOptions();
+      text = options.text;
+      font = 1000 + 'px ' + options.font;
 
-   		textCanvas = createTextCanvas(text, font);
+      textCanvas = createTextCanvas(text, font);
 
-		var canvas = $("#canvas");
-		var canvas_well = canvas.parent();
-		canvas = canvas[0];
-		canvas.width = canvas_well.width();
-		var cx = canvas.getContext("2d");
+      var canvas = $("#canvas");
+      var canvas_well = canvas.parent();
+      canvas = canvas[0];
+      canvas.width = canvas_well.width();
+      var cx = canvas.getContext("2d");
 
-		var scale1 = canvas.width/textCanvas.width;
-		var scale2 = canvas.height/textCanvas.height;
-		var scale = Math.min(scale1,scale2)
-		var width = textCanvas.width*scale;
-		var height = textCanvas.height*scale;
-		var y = (canvas.height-height)/2.0;
-		var x = (canvas.width-width)/2.0;
-		
-		cx.clearRect(0,0,canvas.width, canvas.height)
-		cx.drawImage(textCanvas,x,y,width,height);
+      var scale1 = canvas.width/textCanvas.width;
+      var scale2 = canvas.height/textCanvas.height;
+      var scale = Math.min(scale1,scale2)
+      var width = textCanvas.width*scale;
+      var height = textCanvas.height*scale;
+      var y = (canvas.height-height)/2.0;
+      var x = (canvas.width-width)/2.0;
+      
+      cx.clearRect(0,0,canvas.width, canvas.height)
+      cx.drawImage(textCanvas,x,y,width,height);
+    }
+
+    function debug() {
+      update();
+      options.debug=true;
+      gcode = createToolPaths(textCanvas, options)
     }
 
     function fabricate() {
-    	update();
-		gcode = createToolPaths(textCanvas, options);
-		fabmoDashboard.submitJob(gcode, {	name: 'V-Carve "' + text + '"', 
-											description : "V-Carve the text '" + text + "' at " + options.text_height + '" tall with a ' + options.bit_angle + ' degree bit.',
-											filename : 'vcarve.nc'});
+      update();
+      options.debug=false;
+      gcode = createToolPaths(textCanvas, options);
+      fabmoDashboard.submitJob(gcode, { name: 'V-Carve "' + text + '"', 
+                      description : "V-Carve the text '" + text + "' at " + options.text_height + 'in tall with a ' + options.bit_angle + ' degree bit.',
+                      filename : 'vcarve.nc'});
     }
 
     $('#form-params').change(function(evt) {
       update();
     });
 
-	$('#btn-cut').click(function() {
-		fabricate();
-	});
-	update();
-	</script>
-	</body>
+  $('#btn-cut').click(function() {
+    fabricate();
+  });
+
+  $('#btn-debug').click(function() {
+    debug();
+  });
+
+  update();
+  </script>
+  </body>
 </html>

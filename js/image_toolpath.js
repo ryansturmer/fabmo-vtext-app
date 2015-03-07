@@ -169,6 +169,7 @@ function glyphToPath(glyph) {
 		var theta = 0.0174532925*(bit_angle/2.0);
 		var zpullup = options.zpullup || 0.5;
 		var text_height = options.text_height || 2.0;
+		var debug = options.debug;
 
 		// Create an image for dealing in memory
 		var img = new Img(canvas);
@@ -181,6 +182,15 @@ function glyphToPath(glyph) {
 
 		// Extract points on the skeleton
 		pointset = img.getOnPixels();
+
+		if(debug) {
+			img.normalize(0, 0xff);
+			canvas = document.createElement('canvas');
+			canvas.width = img.width;
+			canvas.height = img.height;
+			img.drawOn(canvas, LUTBlueOrange);
+			$('#debug').append(canvas);
+		}
 		// Pull glyphs
 		glyphs = extractGlyphs(pointset);
 

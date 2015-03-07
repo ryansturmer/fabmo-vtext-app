@@ -262,6 +262,56 @@ Img.prototype.cdt = function() {
 			for(var y=1; y<this.height-1; y++) {
 				center = this.getPixel(x,y);
 				if(center === 0xffff) {
+					 n = this.getPixel(x+0,y-1);
+					 e = this.getPixel(x+1,y+0);
+					 s = this.getPixel(x+0,y+1);
+					 w = this.getPixel(x-1,y+0);
+					nw = this.getPixel(x-1,y+1);
+					ne = this.getPixel(x+1,y-1);
+					se = this.getPixel(x+1,y-1);
+					sw = this.getPixel(x-1,y+1);
+
+					var v = n & s & e & w 
+					var v2 = ne & se & sw & ne;
+
+					if(v === 0) {
+						new_img.setPixel(x,y,iteration);
+						this.setPixel(x,y,1);
+						pixel_changed = true;
+						pixels_changed += 1;
+						
+					} else  if(v2 === 0) {
+						new_img.setPixel(x,y,iteration);
+						this.setPixel(x,y,1.41421356237);
+						pixel_changed = true;
+						pixels_changed += 1;
+					}
+				}
+			}
+		}
+		this.threshold(2, 0xffff);
+	}
+	for(i=0; i<this.d.length; i++) {
+		this.d[i] = new_img.d[i];
+	}
+}
+
+// Chessboard distance transform
+Img.prototype.mdt = function() {
+	// Create second image to store result
+	new_img = new Img(this.width, this.height);
+	this.threshold(0xff, 0xffff);
+	var pixel_changed = true;
+	var max_v = 0
+	var iteration = 0;
+	while(pixel_changed) {
+		iteration += 1;
+		pixel_changed = false;
+		var pixels_changed = 0;
+		for(var x = 1; x<this.width-1; x++) {
+			for(var y=1; y<this.height-1; y++) {
+				center = this.getPixel(x,y);
+				if(center === 0xffff) {
 					n = this.getPixel(x+0,y-1);
 					s = this.getPixel(x+0,y+1);
 					w = this.getPixel(x-1,y+0);
@@ -279,7 +329,6 @@ Img.prototype.cdt = function() {
 		}
 		this.threshold(2, 0xffff);
 	}
-
 	for(i=0; i<this.d.length; i++) {
 		this.d[i] = new_img.d[i];
 	}
