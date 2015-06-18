@@ -142,105 +142,143 @@ function glyphToPath(glyph) {
 	return path;
 }
 
-	function createTextCanvas(text, font) {
-		var cvs = document.createElement('canvas');
-		var cxt = cvs.getContext("2d");
-		cxt.font = font;
-		var metrics = cxt.measureText(text);
-		cvs.width = metrics.width + 20;
-		cvs.height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + 20;
-		var x = 10;
-		var y = cvs.height-metrics.actualBoundingBoxDescent-10;
-		
-		cxt.font = font;
-		cxt.fillStyle = "#330066";
-		cxt.fillText(text, x,y);
+function createTextCanvas(text, font) {
+	var cvs = document.createElement('canvas');
+	var cxt = cvs.getContext("2d");
+	cxt.font = font;
+	var metrics = cxt.measureText(text);
+	cvs.width = metrics.width + 20;
+	cvs.height = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + 20;
+	var x = 10;
+	var y = cvs.height-metrics.actualBoundingBoxDescent-10;
+	
+	cxt.font = font;
+	cxt.fillStyle = "#330066";
+	cxt.fillText(text, x,y);
 
-		cvs.origin = [x,y];
-		cvs.fontMetrics = metrics;
+	cvs.origin = [x,y];
+	cvs.fontMetrics = metrics;
 
-		return cvs;
-	}
-
-	function createToolPaths(canvas, options) {
-		options = options || {};
-		var feedrate = options.feedrate || 2.0;
-		var bit_angle = options.bit_angle || 90.0;
-		var theta = 0.0174532925*(bit_angle/2.0);
-		var zpullup = options.zpullup || 0.5;
-		var text_height = options.text_height || 2.0;
-		var debug = options.debug;
-
-		// Create an image for dealing in memory
-		var img = new Img(canvas);
-
-		// Convert to monochrome
-		img.threshold(1,0xff);
-
-		// Medial axis transform
-		img.mat();
-
-		// Extract points on the skeleton
-		pointset = img.getOnPixels();
-
-		if(debug) {
-			img.normalize(0, 0xff);
-			canvas = document.createElement('canvas');
-			canvas.width = img.width;
-			canvas.height = img.height;
-			img.drawOn(canvas, LUTBlueOrange);
-			$('#debug').append(canvas);
-		}
-		// Pull glyphs
-		glyphs = extractGlyphs(pointset);
-
-		// Find paths via search
-		var paths = []
-		for(i in glyphs) {
-			paths.push(glyphToPath(glyphs[i]));
-		}
-
-		// Info!
-		console.info(glyphs.length + " glyphs extracted.")
-
-		// Begin the gcode file
-		var gcodes = [
-			'(VCarve File)',
-			pullup(zpullup),
-			'M4',
-			'G4 P3'
-		];
-
-		var pulled_up = true;
-		var scale = text_height/canvas.fontMetrics.actualBoundingBoxAscent;
-		var ox = canvas.origin[0];
-		var oy = canvas.origin[1];
-		for(path in paths) {
-			path = paths[path];
-			for(i in path) {
-				point = path[i];
-				// Pull up for dead ends within a path
-				if(point === null) {
-					gcodes.push(pullup(zpullup));
-					pulled_up = true;
-				} else {
-					var x = scale*(point[0]-ox);
-					var y = -scale*(point[1]-oy);
-					var z = -scale*pointset.value(point[0],point[1])/Math.sin(theta);
-					// Jog between pullups
-					if(pulled_up) {
-						gcodes.push(jog(x,y));
-						pulled_up = false;
-					}
-					gcodes.push(move(x, y, z, feedrate))
+	return cvs;
+}
+function createPaths(paths, pointset, scale, ox, oy, theta) {
+	output = []
+	var pulled_up = true;
+	for(path in paths) {
+		path = paths[path];
+		current_output = [];
+		for(i in path) {
+			point = path[i];
+			// Pull up for dead ends within a path
+			if(point === null) {
+				output.push(current_output);
+				current_output = []
+				pulled_up = true;
+			} else {
+				var x = scale*(point[0]-ox);
+				var y = -scale*(point[1]-oy);
+				var z = -scale*pointset.value(point[0],point[1])/Math.sin(theta);
+				// Jog between pullups
+				if(pulled_up) {
+					pulled_up = false;
 				}
+				current_output.push({'x':x,'y':y,'z':z});
 			}
-			// Pull up between paths
-			gcodes.push(pullup(zpullup));
-			pulled_up = true;
 		}
-		gcodes.push(pullup(zpullup));
-		gcodes.push(jog(0,0));
-		gcodes.push('M8');
-		return gcodes.join('\n');
+		output.push(current_output);
+		current_output = []
+		pulled_up = true;
 	}
+return output
+}
+
+function createToolPaths(canvas, options) {
+	options = options || {};
+	var feedrate = options.feedrate || 2.0;
+	var bit_angle = options.bit_angle || 90.0;
+	var theta = 0.0174532925*(bit_angle/2.0);
+	var zpullup = options.zpullup || 0.5;
+	var text_height = options.text_height || 2.0;
+	var debug = options.debug;
+
+	// Create an image for dealing in memory
+	var img = new Img(canvas);
+
+	// Convert to monochrome
+	img.threshold(1,0xff);
+
+	// Medial axis transform
+	img.mat();
+
+	// Extract points on the skeleton
+	pointset = img.getOnPixels();
+
+	if(debug) {
+		img.normalize(0, 0xff);
+		canvas = document.createElement('canvas');
+		canvas.width = img.width;
+		canvas.height = img.height;
+		img.drawOn(canvas, LUTBlueOrange);
+		$('#debug').append(canvas);
+	}
+	// Pull glyphs
+	glyphs = extractGlyphs(pointset);
+
+	// Find paths via search
+	var paths = []
+	for(i in glyphs) {
+		paths.push(glyphToPath(glyphs[i]));
+	}
+
+	// Info!
+	console.info(glyphs.length + " glyphs extracted.")
+
+	// Begin the gcode file
+	var gcodes = [
+		'(VCarve File)',
+		pullup(zpullup),
+		'M4',
+		'G4 P3'
+	];
+
+	var pulled_up = true;
+	var scale = text_height/canvas.fontMetrics.actualBoundingBoxAscent;
+	var ox = canvas.origin[0];
+	var oy = canvas.origin[1];
+	simplifyablePaths = createPaths(paths, pointset, scale, ox, oy, theta);
+	for(path in simplifyablePaths) {
+		path = simplifyablePaths[path];
+		simplified = simplify(path, 0.010, true);
+		console.log("Before: " + path.length + "  After: " + simplified.length);
+	}
+	console.log(simplifyablePaths);
+
+	for(path in paths) {
+		path = paths[path];
+		for(i in path) {
+			point = path[i];
+			// Pull up for dead ends within a path
+			if(point === null) {
+				gcodes.push(pullup(zpullup));
+				pulled_up = true;
+			} else {
+				var x = scale*(point[0]-ox);
+				var y = -scale*(point[1]-oy);
+				var z = -scale*pointset.value(point[0],point[1])/Math.sin(theta);
+				// Jog between pullups
+				if(pulled_up) {
+					gcodes.push(jog(x,y));
+					pulled_up = false;
+				}
+				gcodes.push(move(x, y, z, feedrate))
+			}
+		}
+		// Pull up between paths
+		gcodes.push(pullup(zpullup));
+		pulled_up = true;
+	}
+	gcodes.push(pullup(zpullup));
+	gcodes.push(jog(0,0));
+	gcodes.push('M8');
+	return gcodes.join('\n');
+}
