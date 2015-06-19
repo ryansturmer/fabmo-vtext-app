@@ -276,13 +276,14 @@ Img.prototype.cdt = function() {
 
 					if(v === 0) {
 						new_img.setPixel(x,y,iteration);
-						this.setPixel(x,y,1);
+						this.setPixel(x,y,1.0);
 						pixel_changed = true;
 						pixels_changed += 1;
 						
 					} else  if(v2 === 0) {
 						new_img.setPixel(x,y,iteration);
-						this.setPixel(x,y,1.41421356237);
+						this.setPixel(x,y,1);						
+						//this.setPixel(x,y,1.41421356237);
 						pixel_changed = true;
 						pixels_changed += 1;
 					}
@@ -369,7 +370,8 @@ Img.prototype.skel = function() {
 Img.prototype.mat = function() {
 	mask = this.clone();
 	mask.skel();
-	this.cdt();
+	this.mdt();
+	//this.cdt();
 	this.mask(mask);
 }
 

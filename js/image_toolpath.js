@@ -177,7 +177,7 @@ function createPaths(paths, pointset, scale, ox, oy, theta) {
 			} else {
 				var x = scale*(point[0]-ox);
 				var y = -scale*(point[1]-oy);
-				var z = -scale*pointset.value(point[0],point[1])/Math.sin(theta);
+				var z = -scale*(pointset.value(point[0],point[1])/2.0)/Math.sin(theta);
 				// Jog between pullups
 				if(pulled_up) {
 					pulled_up = false;
@@ -213,6 +213,8 @@ function createToolPaths(canvas, options) {
 	// Extract points on the skeleton
 	pointset = img.getOnPixels();
 
+	console.info(pointset);
+
 	if(debug) {
 		img.normalize(0, 0xff);
 		canvas = document.createElement('canvas');
@@ -246,13 +248,24 @@ function createToolPaths(canvas, options) {
 	var ox = canvas.origin[0];
 	var oy = canvas.origin[1];
 	simplifyablePaths = createPaths(paths, pointset, scale, ox, oy, theta);
+	simple_paths = []
 	for(path in simplifyablePaths) {
 		path = simplifyablePaths[path];
-		simplified = simplify(path, 0.010, true);
-		console.log("Before: " + path.length + "  After: " + simplified.length);
+		simple_paths.push(simplify(path, 0.005, true));
+		//simple_paths.push(path);
+		console.log("Before: " + path.length + "  After: " + simple_paths[simple_paths.length-1].length);
 	}
-	console.log(simplifyablePaths);
 
+	for(path in simple_paths) {
+		path = simple_paths[path];
+		gcodes.push(jog(path[0].x, path[0].y));
+		for(point in path) {
+			point = path[point];
+			gcodes.push(move(point.x, point.y, point.z, feedrate));
+		}
+		gcodes.push(pullup(zpullup));
+	}
+	/*
 	for(path in paths) {
 		path = paths[path];
 		for(i in path) {
@@ -277,7 +290,8 @@ function createToolPaths(canvas, options) {
 		gcodes.push(pullup(zpullup));
 		pulled_up = true;
 	}
-	gcodes.push(pullup(zpullup));
+	*/
+	//gcodes.push(pullup(zpullup));
 	gcodes.push(jog(0,0));
 	gcodes.push('M8');
 	return gcodes.join('\n');
