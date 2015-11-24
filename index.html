@@ -54,6 +54,17 @@
             </div>
 
             <div class="form-group">
+              <label for="input-style" class="col-sm-6 control-label">Font Weight</label>
+              <div class="col-sm-6">
+                <select class="form-control update" id="input-style">
+                  <option value="normal">Normal</option>
+                  <option value="italic">Italic</option>
+                  <option value="bold">Bold</option>
+                </select>    
+              </div>
+            </div>
+
+            <div class="form-group">
               <label for="input-text_height" class="col-sm-6 control-label">Text Height</label>
               <div class="col-sm-6">
                 <div class="input-group">
@@ -62,7 +73,6 @@
                 </div>
               </div>
             </div>
-
 
             <div class="form-group">
               <label for="input-bit_angle" class="col-sm-6 control-label">Bit Angle</label>
@@ -73,6 +83,8 @@
                 </div>
               </div>
             </div>
+
+
             <div class="form-group">
               <label for="input-zpullup" class="col-sm-6 control-label">Safe Z Pullup</label>
               <div class="col-sm-6">
@@ -111,7 +123,7 @@
     function getOptions() {
         // Extract options from the form
         var options = {}
-        $('#form-params').find('input').each(function(){
+        $('#form-params').find('input,select').each(function(){
           var id = this.id.replace(/input-/gi, '');
           options[id] = Number(this.value);
           if(isNaN(options[id])) {
@@ -129,7 +141,7 @@
     function update() {
       options = getOptions();
       text = options.text;
-      font = 500 + 'px ' + options.font;
+      font = options.style + ' ' + 500 + 'px ' + options.font;
 
       textCanvas = createTextCanvas(text, font);
 
@@ -147,7 +159,7 @@
       var y = (canvas.height-height)/2.0;
       var x = (canvas.width-width)/2.0;
       
-      cx.clearRect(0,0,canvas.width, canvas.height)
+      cx.clearRect(0,0,canvas.width, canvas.height);
       cx.drawImage(textCanvas,x,y,width,height);
     }
 
